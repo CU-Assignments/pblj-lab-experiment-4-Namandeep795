@@ -1,5 +1,114 @@
 Experiment 4.3: Ticket Booking System
 
+  class TicketBookingSystem {
+    private boolean[] seats;
+    private static final int TOTAL_SEATS = 5;
+
+    public TicketBookingSystem() {
+        seats = new boolean[TOTAL_SEATS];
+    }
+
+    public synchronized void bookSeat(int seatNumber, String customerName, boolean isVIP) {
+        if (seatNumber < 1 || seatNumber > TOTAL_SEATS) {
+            System.out.println("Invalid seat number!");
+            return;
+        }
+
+        if (seats[seatNumber - 1]) {
+            System.out.println(customerName + ": Seat " + seatNumber + " is already booked!");
+        } else {
+            seats[seatNumber - 1] = true;
+            String userType = isVIP ? "VIP" : "Regular";
+            System.out.println(customerName + " (" + userType + ") booked seat " + seatNumber);
+        }
+    }
+
+    public void displayBookingStatus() {
+        for (int i = 0; i < TOTAL_SEATS; i++) {
+            System.out.println("Seat " + (i + 1) + ": " + (seats[i] ? "Booked" : "Available"));
+        }
+    }
+}
+
+class BookingThread extends Thread {
+    private TicketBookingSystem bookingSystem;
+    private int seatNumber;
+    private String customerName;
+    private boolean isVIP;
+
+    public BookingThread(TicketBookingSystem bookingSystem, int seatNumber, String customerName, boolean isVIP) {
+        this.bookingSystem = bookingSystem;
+        this.seatNumber = seatNumber;
+        this.customerName = customerName;
+        this.isVIP = isVIP;
+    }
+
+    @Override
+    public void run() {
+        bookingSystem.bookSeat(seatNumber, customerName, isVIP);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        TicketBookingSystem bookingSystem = new TicketBookingSystem();
+
+        bookingSystem.displayBookingStatus();
+
+        BookingThread anish = new BookingThread(bookingSystem, 1, "Anish", true);
+        BookingThread bobby = new BookingThread(bookingSystem, 2, "Bobby", false);
+        BookingThread charlie = new BookingThread(bookingSystem, 3, "Charlie", true);
+
+        anish.start();
+        bobby.start();
+        charlie.start();
+
+        anish.join();
+        bobby.join();
+        charlie.join();
+
+        BookingThread bobbyLow = new BookingThread(bookingSystem, 4, "Bobby", false);
+        BookingThread anishHigh = new BookingThread(bookingSystem, 4, "Anish", true);
+        bobbyLow.setPriority(Thread.MIN_PRIORITY);
+        anishHigh.setPriority(Thread.MAX_PRIORITY);
+
+        anishHigh.start();
+        bobbyLow.start();
+
+        anishHigh.join();
+        bobbyLow.join();
+
+        BookingThread bobbyAgain = new BookingThread(bookingSystem, 1, "Bobby", false);
+        bobbyAgain.start();
+        bobbyAgain.join();
+
+        BookingThread regularUser = new BookingThread(bookingSystem, 3, "Regular User", false);
+        regularUser.start();
+        regularUser.join();
+
+        BookingThread invalidSeat = new BookingThread(bookingSystem, 0, "Invalid User", false);
+        BookingThread outOfRange = new BookingThread(bookingSystem, 6, "OutOfRange User", false);
+        invalidSeat.start();
+        outOfRange.start();
+        invalidSeat.join();
+        outOfRange.join();
+
+        BookingThread[] users = new BookingThread[10];
+        for (int i = 0; i < 10; i++) {
+            users[i] = new BookingThread(bookingSystem, (i % 5) + 1, "User" + (i + 1), i % 2 == 0);
+            users[i].start();
+        }
+
+        for (BookingThread user : users) {
+            user.join();
+        }
+
+        bookingSystem.displayBookingStatus();
+    }
+}
+
+
+
 This program simulates a ticket booking system where multiple users (threads) try to book seats at the same time. The key challenges addressed are:
 
 1) Avoiding Double Booking → Using synchronized methods to ensure no two users book the same seat.

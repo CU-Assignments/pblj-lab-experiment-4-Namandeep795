@@ -1,5 +1,113 @@
 Experiment 4.2: Card Collection System
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+class Card {
+    String value;
+    String suit;
+
+    Card(String value, String suit) {
+        this.value = value;
+        this.suit = suit;
+    }
+
+    @Override
+    public String toString() {
+        return value + " of " + suit;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Card card = (Card) obj;
+        return value.equals(card.value) && suit.equals(card.suit);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode() + suit.hashCode();
+    }
+}
+
+public class Main {
+    Set<Card> cards = new HashSet<>();
+    Map<String, List<Card>> suitMap = new HashMap<>();
+
+    public void addCard(String value, String suit) {
+        Card newCard = new Card(value, suit);
+        if (cards.contains(newCard)) {
+            System.out.println("Error: Card \"" + newCard + "\" already exists.");
+        } else {
+            cards.add(newCard);
+            suitMap.computeIfAbsent(suit, k -> new ArrayList<>()).add(newCard);
+            System.out.println("Card added: " + newCard);
+        }
+    }
+
+    public void findCardsBySuit(String suit) {
+        List<Card> cardsOfSuit = suitMap.get(suit);
+        if (cardsOfSuit != null && !cardsOfSuit.isEmpty()) {
+            System.out.println("Cards of suit " + suit + ":");
+            for (Card card : cardsOfSuit) {
+                System.out.println(card);
+            }
+        } else {
+            System.out.println("No cards found for " + suit + ".");
+        }
+    }
+
+    public void displayAllCards() {
+        if (cards.isEmpty()) {
+            System.out.println("No cards found.");
+        } else {
+            System.out.println("All Cards:");
+            for (Card card : cards) {
+                System.out.println(card);
+            }
+        }
+    }
+
+    public void removeCard(String value, String suit) {
+        Card cardToRemove = new Card(value, suit);
+        if (cards.contains(cardToRemove)) {
+            cards.remove(cardToRemove);
+            suitMap.get(suit).remove(cardToRemove);
+            System.out.println("Card removed: " + cardToRemove);
+        } else {
+            System.out.println("Card not found: " + cardToRemove);
+        }
+    }
+
+    public static void main(String[] args) {
+        Main system = new Main();
+
+        system.displayAllCards();
+
+        system.addCard("Ace", "Spades");
+        system.addCard("King", "Hearts");
+        system.addCard("10", "Diamonds");
+        system.addCard("5", "Clubs");
+
+        system.findCardsBySuit("Hearts");
+        system.findCardsBySuit("Diamonds");
+
+        system.displayAllCards();
+
+        system.addCard("King", "Hearts");
+
+        system.removeCard("10", "Diamonds");
+        system.displayAllCards();
+    }
+}
+
+
+
 Objective:
 Develop a Java program that collects and stores playing cards to help users find all the cards of a given symbol (suit).
 The program should utilize the Collection interface (such as ArrayList, HashSet, or HashMap) to manage the card data efficiently.
